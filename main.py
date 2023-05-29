@@ -1,4 +1,7 @@
-import tkinter, tkinter.font, tkinter.ttk
+import tkinter
+import tkinter.font
+import tkinter.ttk
+
 """Предположил, что в БД хранятся Доска->Колонки, Колонка->Задачи, Задача->Инфа о задаче"""
 
 
@@ -23,7 +26,8 @@ class Settings:
         # Закрытие
         self.window.protocol("WM_DELETE_WINDOW", self.close)
 
-    def change_theme(self, event) -> None:
+    @staticmethod
+    def change_theme(event) -> None:
         """
         Меняет тему приложения
         :param event: ComboboxSelected event
@@ -41,6 +45,43 @@ class Settings:
         self.window.grab_release()
         self.window.destroy()
 
+class About:
+    def __init__(self):
+        # Конфигурация окна
+        self.window = tkinter.Toplevel()
+        self.window.title("settings")
+        self.window.minsize(640, 480)
+        self.window.grab_set()
+        # Выравнивание сетки
+        self.window.columnconfigure(index=0, weight=1)
+        self.window.columnconfigure(index=1, weight=1)
+        # Кнопки
+        tkinter.ttk.Label(self.window, text="our team ", font="text_font").grid(row=0, column=0)
+        # Закрытие
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+    def close(self) -> None:
+        """Удаляет окно, высвобаждая фокус"""
+        self.window.grab_release()
+        self.window.destroy()
+
+class Help:
+    def __init__(self):
+        # Конфигурация окна
+        self.window = tkinter.Toplevel()
+        self.window.title("settings")
+        self.window.minsize(640, 480)
+        self.window.grab_set()
+        # Выравнивание сетки
+        self.window.columnconfigure(index=0, weight=1)
+        self.window.columnconfigure(index=1, weight=1)
+        # Кнопки
+        tkinter.ttk.Label(self.window, text="как пользоваться", font="text_font").grid(row=0, column=0)
+        # Закрытие
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+    def close(self) -> None:
+        """Удаляет окно, высвобаждая фокус"""
+        self.window.grab_release()
+        self.window.destroy()
 
 class MainMenu:
     """Принимает меню и дополняет его элементами, создавая главное меню программы"""
@@ -51,14 +92,16 @@ class MainMenu:
         self.menu.add_command(label="Настройки", command=Settings)  # Открывает новое меню с настройками
         self.main_menu.add_cascade(label="Файл", menu=self.menu)
         # Помощь
-        self.main_menu.add_command(label="Помощь", command=self.menu_help)
+        self.main_menu.add_command(label="Помощь", command=Help)
         # О нас
-        self.main_menu.add_command(label="Справка", command=self.menu_about)
+        self.main_menu.add_command(label="Справка", command=About)
 
-    def menu_help(self) -> None:
+    @staticmethod
+    def menu_help() -> None:
         print("Clicked menu->help")
 
-    def menu_about(self) -> None:
+    @staticmethod
+    def menu_about() -> None:
         print("Clicked menu->about")
 
 
@@ -88,12 +131,14 @@ class Column:
         self.frame.rowconfigure(index=0, weight=2)
         self.frame.rowconfigure(index=1, weight=8)
 
-    def select(self, event):
+    @staticmethod
+    def select(event):
         index = event.widget.curselection()
         if len(index) != 0:
             print(f"Выбран {index[0]}")
 
-    def add(self):
+    @staticmethod
+    def add():
         print("Добавление задачи")
 
 
@@ -105,6 +150,7 @@ class Board:
         if add:
             self.frame = tkinter.ttk.Frame(self.notebook, name="+")
             self.notebook.add(self.frame, text="+")
+            # создание доски +
         else:
             self.frame = tkinter.ttk.Frame(self.notebook)
             # Добавление столбцов
@@ -168,6 +214,8 @@ class MainScreen:
     def new_board(self):
         # TODO экран создания доски (или можно его встроить во вкладку "+")
         print("Создание новой доски")
+        # Board(self.notebook, 1)
+        # self.notebook.select(self.notebook.index("end")-2)
 
     def tab_changed(self, event) -> None:
         if event.widget.select().endswith("+"):
@@ -198,7 +246,7 @@ if __name__ == "__main__":
              tkinter.font.Font(root=root_window, name="header2_font", family="Times", size=16, weight="normal"),
              tkinter.font.Font(root=root_window, name="header3_font", family="Times", size=14, weight="normal"),
              ]
-    tkinter.ttk.Style().theme_use("clam")
+    tkinter.ttk.Style().theme_use("forest-dark")
     themes = [theme for theme in tkinter.ttk.Style().theme_names()]
     # Меню
     root_window.option_add("*tearOff", False)
