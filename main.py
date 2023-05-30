@@ -45,6 +45,7 @@ class Settings:
         self.window.grab_release()
         self.window.destroy()
 
+
 class About:
     def __init__(self):
         # Конфигурация окна
@@ -64,6 +65,7 @@ class About:
         self.window.grab_release()
         self.window.destroy()
 
+
 class Help:
     def __init__(self):
         # Конфигурация окна
@@ -82,6 +84,7 @@ class Help:
         """Удаляет окно, высвобаждая фокус"""
         self.window.grab_release()
         self.window.destroy()
+
 
 class MainMenu:
     """Принимает меню и дополняет его элементами, создавая главное меню программы"""
@@ -150,6 +153,10 @@ class Board:
         if add:
             self.frame = tkinter.ttk.Frame(self.notebook, name="+")
             self.notebook.add(self.frame, text="+")
+            tkinter.ttk.Label(self.frame, text="""Создание доски""", font="text_font").grid(row=0, column=0)
+            tkinter.ttk.Button(self.frame, text="Создать доску", command=MainScreen.new_board(MainScreen)).grid(row=2, column=0)
+            tkinter.ttk.Entry(self.frame).grid(row=1, column=0)
+            # board_name = tkinter.ttk.Entry.get(self)
             # создание доски +
         else:
             self.frame = tkinter.ttk.Frame(self.notebook)
@@ -214,12 +221,13 @@ class MainScreen:
     def new_board(self):
         # TODO экран создания доски (или можно его встроить во вкладку "+")
         print("Создание новой доски")
-        # Board(self.notebook, 1)
-        # self.notebook.select(self.notebook.index("end")-2)
+        Board(self.notebook, 1)
+        self.notebook.select(self.notebook.index("end")-2)
 
     def tab_changed(self, event) -> None:
-        if event.widget.select().endswith("+"):
-            self.new_board()
+        pass
+        #if event.widget.select().endswith("+"):
+            #self.new_board()
 
     def show(self):
         """Отображает экран в окне"""
