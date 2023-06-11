@@ -1,7 +1,29 @@
 import tkinter, tkinter.font, tkinter.ttk
+import database as db
 """Предположил, что в БД хранятся Доска->Колонки, Колонка->Задачи, Задача->Инфа о задаче"""
+"""class NewTab:
+    def __init__(self):
+        self.window = tkinter.Toplevel()
+        self.window.title("settings")
+        self.window.minsize(100, 90)
+        self.window.columnconfigure(index=0, weight=1)
+        self.window.columnconfigure(index=1, weight=1)
+        entry = tkinter.ttk.Entry(self.window)
+        entry.grid(row=0, column=0)
+        btn = tkinter.ttk.Button(self.window, text="Enter", command=self.insert(entry))
+        btn.grid(row=0, column=1)
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+
+    def insert(self, entry):
+        name = entry.get()
+        if name != "":
+            print("Создание новой доски")
+        Board(root_window.main_frame.notebook, 1, "New")###
 
 
+    def close(self) -> None:
+        self.window.grab_release()
+        self.window.destroy()"""
 class Settings:
     """Окно настроек, при вызове располагается поверх остальных и захватывает фокус"""
     def __init__(self):
@@ -99,13 +121,14 @@ class Column:
 
 class Board:
     """Доска заданий, имеющая свои столбцы"""
-    def __init__(self, notebook, board_id, add=False):
+    def __init__(self, notebook, board_id, name, add=False):
         self.notebook = notebook
         self.board_id = board_id
         if add:
             self.frame = tkinter.ttk.Frame(self.notebook, name="+")
             self.notebook.add(self.frame, text="+")
         else:
+            self.name1 = name
             self.frame = tkinter.ttk.Frame(self.notebook)
             # Добавление столбцов
             # TODO восстановление столбцов из БД
@@ -113,8 +136,16 @@ class Board:
             self.columns.append(Column(self.frame, 1))
             self.columns.append(Column(self.frame, 1))
             # TODO восстановление доски из БД
-            self.text = "Доска"
-            self.notebook.insert(self.notebook.index("end") - 1, self.frame, text=self.text)  # До должен быть frame "+"
+            count = 0
+            Names = []
+            for i in DataBace.returnNameTables():
+                Names.append(str(i).split("'")[1])
+            while self.name1 in Names:
+                self.name1 = self.name1.split("_")[0]
+                count+=1
+                self.name1 += f"_{count}"
+            DataBace.createNewDesk(self.name1)
+            self.notebook.insert(self.notebook.index("end") - 1, self.frame, text=self.name1)  # До должен быть frame "+"
 
             # Создание сетки
             self.number_of_rows = 3
@@ -143,11 +174,20 @@ class Board:
         self.alignment()
 
     def rename(self):
-        print("Переименование доски")
+        name = input()
+        self.notebook.forget("current")
+        Board(self.notebook, 1, name)
+        self.notebook.select(self.notebook.index("end") - 2)
+
 
     def delete(self):
         # TODO удаление из БД
         self.notebook.forget("current")
+        DataBace.deleteDesk(self.name1)
+        if self.notebook.index("end") == 1:
+            self.notebook.select(self.notebook.index("end") - 1)
+        else:
+            self.notebook.select(self.notebook.index("end") - 2)
 
 
 class MainScreen:
@@ -158,21 +198,20 @@ class MainScreen:
         # Создание вкладок
         self.notebook = tkinter.ttk.Notebook(padding=5)
         # TODO проход по БД для восстановления досок
-        Board(self.notebook, -1, add=tkinter.TRUE)
-        Board(self.notebook, 1)
-        Board(self.notebook, 1)
+        Board(self.notebook, -1, "+", add=tkinter.TRUE)
         self.notebook.select(0)
         self.notebook.bind("<<NotebookTabChanged>>", self.tab_changed)
         self.notebook.place(relx=0.5, rely=0.5, anchor="center", relheight=1.0, relwidth=1.0)
 
     def new_board(self):
         # TODO экран создания доски (или можно его встроить во вкладку "+")
-        print("Создание новой доски")
+#        NewTab()
+        Board(self.notebook, 1, "New")
+        self.notebook.select(self.notebook.index("end") - 2)
 
     def tab_changed(self, event) -> None:
         if event.widget.select().endswith("+"):
             self.new_board()
-
     def show(self):
         """Отображает экран в окне"""
         self.main_frm.place(relx=0.5, rely=0.5, anchor="center", relheight=1.0, relwidth=1.0)
@@ -180,6 +219,8 @@ class MainScreen:
 
 favicon_path = "favicon.png"
 
+DataBace = db.Desk("desk2")
+print(DataBace.returnNameTables())
 if __name__ == "__main__":
     # Главное окно
     root_window = tkinter.Tk()
