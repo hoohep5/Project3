@@ -98,11 +98,23 @@ class Column:
         self.window = window
         self.frame = tkinter.ttk.Frame(window)
         # Кнопка
-        tkinter.ttk.Button(self.frame, text="Добавить", command=self.add).grid(row=0)
+
         # Список
         self.listbox = tkinter.Listbox(self.frame, selectmode=tkinter.SINGLE)
         self.listbox.bind("<<ListboxSelect>>", self.select)
-        for elem in ["a", "b", "c"]:  # TODO получение данных с БД
+        try:
+            data = DataBace.returnAll(id)[0]
+            title = data[0]
+            text = data[1]
+        except:
+#            DataBace.createNewDesk(id)
+            data = DataBace.returnAll(id)[1]
+            title = data[0]
+            text = data[1]
+#            title = DataBace.returnTitles(id)[-1]
+#            text = DataBace.returnAbouts(id)[-1]
+        tkinter.ttk.Button(self.frame, text=title, command=self.add).grid(row=0)
+        for elem in [text]:  # TODO получение данных с БД
             self.listbox.insert(self.listbox.size(), elem)
         self.listbox.grid(row=1)
         # Выравнивание сетки
@@ -133,20 +145,11 @@ class Board:
             # Добавление столбцов
             # TODO восстановление столбцов из БД
             self.columns = list()
-            self.columns.append(Column(self.frame, 1))
-            self.columns.append(Column(self.frame, 1))
+            self.columns.append(Column(self.frame, self.name1))
+#            self.columns.append(Column(self.frame, 1))
             # TODO восстановление доски из БД
-            count = 0
-            Names = []
-            for i in DataBace.returnNameTables():
-                Names.append(str(i).split("'")[1])
-            while self.name1 in Names:
-                self.name1 = self.name1.split("_")[0]
-                count+=1
-                self.name1 += f"_{count}"
             DataBace.createNewDesk(self.name1)
             self.notebook.insert(self.notebook.index("end") - 1, self.frame, text=self.name1)  # До должен быть frame "+"
-
             # Создание сетки
             self.number_of_rows = 3
             self.number_of_columns = len(self.columns)
@@ -171,15 +174,20 @@ class Board:
 
     def add_column(self):
         print("Добавление столбца")
+        title = input()
+        text = input()
+        DataBace.addText(self.name1, title, text)
+        self.columns.append(Column(self.frame, self.name1))
+        self.number_of_columns = len(self.columns)
         self.alignment()
-
+        for i in range(len(self.columns)):
+            self.columns[i].frame.grid(row=1, column=i)
+        self.frame_control.grid(row=0, column=0, columnspan=self.number_of_columns, sticky="nw")
     def rename(self):
         name = input()
         self.notebook.forget("current")
         Board(self.notebook, 1, name)
         self.notebook.select(self.notebook.index("end") - 2)
-
-
     def delete(self):
         # TODO удаление из БД
         self.notebook.forget("current")
@@ -199,6 +207,8 @@ class MainScreen:
         self.notebook = tkinter.ttk.Notebook(padding=5)
         # TODO проход по БД для восстановления досок
         Board(self.notebook, -1, "+", add=tkinter.TRUE)
+        for i in DataBace.returnNameTables():
+            Board(self.notebook, 1 , str(i).split("'")[1])
         self.notebook.select(0)
         self.notebook.bind("<<NotebookTabChanged>>", self.tab_changed)
         self.notebook.place(relx=0.5, rely=0.5, anchor="center", relheight=1.0, relwidth=1.0)
@@ -206,7 +216,20 @@ class MainScreen:
     def new_board(self):
         # TODO экран создания доски (или можно его встроить во вкладку "+")
 #        NewTab()
-        Board(self.notebook, 1, "New")
+        name = "New"
+        count = 0
+        Names = []
+        try:
+            for i in DataBace.returnNameTables():
+                Names.append(str(i).split("'")[1])
+            while name in Names:
+                name = name.split("_")[0]
+                count+=1
+                name += f"_{count}"
+            DataBace.createNewDesk(name)
+        except:
+            DataBace.createNewDesk(name)
+        Board(self.notebook, 1, name)
         self.notebook.select(self.notebook.index("end") - 2)
 
     def tab_changed(self, event) -> None:
@@ -220,6 +243,9 @@ class MainScreen:
 favicon_path = "favicon.png"
 
 DataBace = db.Desk("desk2")
+DataBace.createNewDesk("Desk1")
+DataBace.addText("Desk1", "Title1", "Text1")
+DataBace.addText("Desk1", "Title2", "Text2")
 print(DataBace.returnNameTables())
 if __name__ == "__main__":
     # Главное окно

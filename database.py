@@ -7,7 +7,7 @@ class Desk:
         self.c = self.db.cursor()
 
     def createNewDesk(self, name):
-        self.c.execute(f"""CREATE TABLE IF NOT EXISTS {name} (title TEXT, about TEXT)""")
+        self.c.execute(f"""CREATE TABLE IF NOT EXISTS {name} (title LIST, about LIST)""")
         self.db.commit()
 
     def addText(self, name, title, text):
@@ -45,12 +45,14 @@ class Desk:
         self.c.execute("SELECT name FROM sqlite_master WHERE type='table';")
         return self.c.fetchall()
 
-#Board = Desk("desk1")
-#Board.createNewDesk("Desk1")
-#Board.addText("Desk1", "Title1", "Text1")
+DataBace = Desk("desk2")
+DataBace.createNewDesk("Desk1")
+#DataBace.addText("Desk1", "Title1", "Text1")
 #Board.addText("Desk1", "Title2", "Text2")
 #Board.deleteAboutDesk("Desk1")
 #Board.addText("Desk1", "Title3", "Text3")
-#print(Board.returnAll("Desk1"))
+print(DataBace.returnAll("Desk1"))
+print(DataBace.returnNameTables())
+#print(DataBace.returnAll("New"))
 #print(Board.returnById("Desk1", 2))
-#Board.deleteDesk("Desk1")
+#DataBace.deleteDesk("New")
