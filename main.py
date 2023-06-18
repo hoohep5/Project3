@@ -61,13 +61,6 @@ class MainMenu:
     def menu_about(self) -> None:
         print("Clicked menu->about")
 
-
-class Card:
-    """Карточка с заданием"""
-    def __init__(self):
-        pass
-
-
 class Column:
     """Столбцы с задачами"""
     frame: tkinter.ttk.Frame
@@ -84,17 +77,6 @@ class Column:
         # Список
         self.listbox = tkinter.Listbox(self.frame, selectmode=tkinter.SINGLE)
 #        self.listbox.bind("<<ListboxSelect>>", self.select)
-#        try:
-#            data = str(DataBace.returnAll(name)[1]).split(",")
-#            data = str(DataBace.returnAll(name)[-1]).split(",")
-#            title = data[0][2:-1]
-#            text = data[1][1:-2]
-#        except:
-#            data = str(DataBace.returnAll(name)[0]).split(",")
-#            title = data[0][2:-1]
-#            text = data[1][1:-2]
-#            title = DataBace.returnTitles(id)[-1]
-#            text = DataBace.returnAbouts(id)[-1]
         self.btn1 = tkinter.ttk.Button(self.frame, text=title, command=self.add)
         self.btn1.grid(row=0)
         for elem in [text]:  # TODO получение данных с БД
@@ -111,6 +93,7 @@ class Column:
 #            print(f"Выбран {index[0]}")
 
     def add(self):
+        print("Input title and text:\n")
         title = input()
         text = input()
         self.listbox.delete(0)
@@ -178,6 +161,7 @@ class Board:
 
     def add_column(self):
         self.id += 1
+        print("Input title and text:(don't copy text)")
         title = input()
         while(DataBace.check(self.name1, title)):
             print("repeat")
@@ -202,6 +186,7 @@ class Board:
         self.titles.pop()
 
     def rename(self):
+        print("input new name:\n")
         name = input()
         self.notebook.forget("current")
         Board(self.notebook, 1, name)
