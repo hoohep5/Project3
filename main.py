@@ -1,6 +1,7 @@
 import tkinter
 import tkinter.font
 import tkinter.ttk
+import webbrowser
 
 import database as db
 
@@ -49,6 +50,78 @@ class Settings:
         self.window.destroy()
 
 
+class Help_Info(tkinter.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.title("Справка")
+
+        # Текст с описанием использования
+        help_text = """
+                Добро пожаловать в наше приложение!
+
+                Как пользоваться:
+                1. Создайте новую доску заданий, нажав кнопку "Добавить доску".
+                2. Введите имя для новой доски и нажмите "ОК".
+                3. Для переименования доски нажмите кнопку "Переименовать доску".
+                4. Добавьте столбцы на доску, нажав кнопку "Добавить столбец".
+                5. Введите заголовок и текст для нового столбца и нажмите "ОК".
+                6. Для переименования столбца нажмите кнопку "Переименовать столбец".
+                7. Для удаления столбца нажмите кнопку "Удалить столбец".
+                8. Для удаления доски нажмите кнопку "Удалить доску".
+
+                Приятного использования!
+                """
+
+        # Создаем метку с текстом справки
+        help_label = tkinter.Label(self, text=help_text, justify=tkinter.LEFT)
+        help_label.pack(padx=10, pady=10)
+
+        # Кнопка "Закрыть" для закрытия окна
+        close_button = tkinter.Button(self, text="Начать пользоваться!", command=self.destroy)
+        close_button.pack(pady=10)
+
+
+class About_Us(tkinter.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.title("О нас")
+
+        hello_text = """Привет! Это наша команда. Приятно познакомиться!"""
+        help_label = tkinter.Label(self, text=hello_text, justify=tkinter.LEFT)
+        help_label.pack(padx=10, pady=10)
+
+        link_label = tkinter.Label(self, text="Никита", fg="blue", cursor="hand2")
+        link_label.pack()
+        link_label.bind("<Button-1>", lambda e: self.open_link("https://github.com/hoohep5"))
+
+        link_label = tkinter.Label(self, text="Олег", fg="blue", cursor="hand2")
+        link_label.pack()
+        link_label.bind("<Button-1>", lambda e: self.open_link("https://github.com/aethersoljuh"))
+
+        link_label = tkinter.Label(self, text="Витя", fg="blue", cursor="hand2")
+        link_label.pack()
+        link_label.bind("<Button-1>", lambda e: self.open_link("https://github.com/Vorin2473"))
+
+        link_label = tkinter.Label(self, text="Илья", fg="blue", cursor="hand2")
+        link_label.pack()
+        link_label.bind("<Button-1>", lambda e: self.open_link("https://github.com/Lorane-I"))
+
+        link_label = tkinter.Label(self, text="И конечно же сказочный персонаж: Макар", fg="blue", cursor="hand2")
+        link_label.pack()
+        link_label.bind("<Button-1>", lambda e: self.open_link("https://github.com/CH4NG35"))
+
+        # Кнопка "Закрыть" для закрытия окна
+        close_button = tkinter.Button(self, text="Profit?!?!?!??!?!??!??", command=self.destroy)
+        close_button.pack(pady=10)
+
+    @staticmethod
+    def open_link(url):
+        webbrowser.open(url)
+
+
+
+
+
 class MainMenu:
     """Принимает меню и дополняет его элементами, создавая главное меню программы"""
 
@@ -59,15 +132,9 @@ class MainMenu:
         self.menu.add_command(label="Настройки", command=Settings)  # Открывает новое меню с настройками
         self.main_menu.add_cascade(label="Файл", menu=self.menu)
         # Помощь
-        self.main_menu.add_command(label="Помощь", command=self.menu_help)
+        self.main_menu.add_command(label="Помощь", command=Help_Info)  # Открывает меню помощи
         # О нас
-        self.main_menu.add_command(label="Справка", command=self.menu_about)
-
-    def menu_help(self) -> None:
-        print("Clicked menu->help")
-
-    def menu_about(self) -> None:
-        print("Clicked menu->about")
+        self.main_menu.add_command(label="Справка", command=About_Us)
 
 
 class Column:
@@ -130,12 +197,13 @@ class Board:
             self.texts = []
             self.frame = tkinter.ttk.Frame(self.notebook)
             # Добавление столбцов
-            # TODO восстановление столбцов из БД
+            # Восстановление столбцов из БД
             DataBace.createNewDesk(self.name1)
             if not DataBace.check(self.name1, "new"):
                 DataBace.addText(self.name1, "new", "-")
             self.columns = []
             DataBace.returnAll(self.name1)
+
             for i in DataBace.returnAll(name):
                 data = str(i).split(",")
                 title = data[0][2:-1]
@@ -144,7 +212,7 @@ class Board:
                 self.texts.append(text)
                 self.columns.append(Column(self.frame, self.name1, title, text, self.id))
             #            self.columns.append(Column(self.frame, 1))
-            # TODO восстановление доски из БД
+            # Восстановление доски из БД
             self.notebook.insert(self.notebook.index("end") - 1, self.frame,
                                  text=self.name1)  # До должен быть frame "+"
             # Создание сетки
@@ -211,7 +279,7 @@ class Board:
         self.titles.pop()
 
     def delete(self):
-        # TODO удаление из БД
+        # Удаление из БД
         self.notebook.forget("current")
         DataBace.deleteDesk(self.name1)
         if self.notebook.index("end") == 1:
@@ -254,7 +322,7 @@ class MainScreen:
         self.main_frm = tkinter.ttk.Frame(self.window, padding=15)
         # Создание вкладок
         self.notebook = tkinter.ttk.Notebook(padding=5)
-        # TODO проход по БД для восстановления досок
+        # Проход по БД для восстановления досок
         Board(self.notebook, -1, "+", add=tkinter.TRUE)
         for i in DataBace.returnNameTables():
             Board(self.notebook, 1, str(i).split("'")[1])
@@ -271,7 +339,7 @@ class MainScreen:
     #     self.name_input.insert(0, self.name)
 
     def new_board(self):
-        # TODO экран создания доски (или можно его встроить во вкладку "+")
+        # Создание доски
         #        NewTab()
         name = "New"
         count = 0
