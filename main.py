@@ -83,7 +83,7 @@ class Column:
 
         # Список
         self.listbox = tkinter.Listbox(self.frame, selectmode=tkinter.SINGLE)
-        self.listbox.bind("<<ListboxSelect>>", self.select)
+#        self.listbox.bind("<<ListboxSelect>>", self.select)
 #        try:
 #            data = str(DataBace.returnAll(name)[1]).split(",")
 #            data = str(DataBace.returnAll(name)[-1]).split(",")
@@ -105,13 +105,12 @@ class Column:
         self.frame.rowconfigure(index=0, weight=2)
         self.frame.rowconfigure(index=1, weight=8)
 
-    def select(self, event):
-        index = event.widget.curselection()
-        if len(index) != 0:
-            print(f"Выбран {index[0]}")
+#    def select(self, event):
+#       index = event.widget.curselection()
+#        if len(index) != 0:
+#            print(f"Выбран {index[0]}")
 
     def add(self):
-        print("Добавление задачи")
         title = input()
         text = input()
         self.listbox.delete(0)
@@ -121,11 +120,6 @@ class Column:
         DataBace.update(self.name, "about", self.text, text)
         DataBace.deleteAboutLast(self.name, "title", self.title)
         self.btn1.config(text = title)
-
-    def delete(self):
-        self.listbox.destroy()
-        self.btn1.destroy()
-        self.btn2.destroy()
 
 class Board:
     """Доска заданий, имеющая свои столбцы"""
@@ -144,15 +138,12 @@ class Board:
             # Добавление столбцов
             # TODO восстановление столбцов из БД
             DataBace.createNewDesk(self.name1)
-            print(DataBace.returnTitles(self.name1))
             if DataBace.check(self.name1, "new") == False:
                 DataBace.addText(self.name1, "new", "-")
             self.columns = []
             DataBace.returnAll(self.name1)
             for i in DataBace.returnAll(name):
-                print(i)
                 data = str(i).split(",")
-                print(data)
                 title = data[0][2:-1]
                 self.titles.append(title)
                 text = data[1][2:-2]
@@ -187,7 +178,6 @@ class Board:
 
     def add_column(self):
         self.id += 1
-        print("Добавление столбца")
         title = input()
         while(DataBace.check(self.name1, title)):
             print("repeat")
@@ -204,7 +194,6 @@ class Board:
         self.frame_control.grid(row=0, column=0, columnspan=self.number_of_columns, sticky="nw")
 
     def delete_column(self):
-        print("sdfghjk")
         self.columns[-1].listbox.destroy()
         self.columns[-1].btn1.destroy()
         self.columns.pop()
@@ -273,8 +262,7 @@ favicon_path = "favicon.png"
 
 DataBace = db.Desk("desk2")
 DataBace.createNewDesk("Desk1")
-print(DataBace.returnNameTables())
-print(DataBace.returnAll("Desk1"))
+
 if __name__ == "__main__":
     # Главное окно
     root_window = tkinter.Tk()
