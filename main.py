@@ -1,6 +1,6 @@
 import tkinter, tkinter.font, tkinter.ttk
+import database as db
 """Предположил, что в БД хранятся Доска->Колонки, Колонка->Задачи, Задача->Инфа о задаче"""
-
 
 class Settings:
     """Окно настроек, при вызове располагается поверх остальных и захватывает фокус"""
@@ -61,26 +61,25 @@ class MainMenu:
     def menu_about(self) -> None:
         print("Clicked menu->about")
 
-
-class Card:
-    """Карточка с заданием"""
-    def __init__(self):
-        pass
-
-
 class Column:
     """Столбцы с задачами"""
     frame: tkinter.ttk.Frame
 
-    def __init__(self, window, id):
+    def __init__(self, window, name, title, text, column_id):
         self.window = window
         self.frame = tkinter.ttk.Frame(window)
+        self.id = column_id
+        self.name = name
+        self.title = title
+        self.text = text
         # Кнопка
-        tkinter.ttk.Button(self.frame, text="Добавить", command=self.add).grid(row=0)
+
         # Список
         self.listbox = tkinter.Listbox(self.frame, selectmode=tkinter.SINGLE)
-        self.listbox.bind("<<ListboxSelect>>", self.select)
-        for elem in ["a", "b", "c"]:  # TODO получение данных с БД
+#        self.listbox.bind("<<ListboxSelect>>", self.select)
+        self.btn1 = tkinter.ttk.Button(self.frame, text=title, command=self.add)
+        self.btn1.grid(row=0)
+        for elem in [text]:  # TODO получение данных с БД
             self.listbox.insert(self.listbox.size(), elem)
         self.listbox.grid(row=1)
         # Выравнивание сетки
@@ -88,34 +87,54 @@ class Column:
         self.frame.rowconfigure(index=0, weight=2)
         self.frame.rowconfigure(index=1, weight=8)
 
-    def select(self, event):
-        index = event.widget.curselection()
-        if len(index) != 0:
-            print(f"Выбран {index[0]}")
+#    def select(self, event):
+#       index = event.widget.curselection()
+#        if len(index) != 0:
+#            print(f"Выбран {index[0]}")
 
     def add(self):
-        print("Добавление задачи")
-
+        print("Input title and text:\n")
+        title = input()
+        text = input()
+        self.listbox.delete(0)
+        for elem in [text]:  # TODO получение данных с БД
+            self.listbox.insert(self.listbox.size(), elem)
+        DataBace.update(self.name, "title", self.title, title)
+        DataBace.update(self.name, "about", self.text, text)
+        DataBace.deleteAboutLast(self.name, "title", self.title)
+        self.btn1.config(text = title)
 
 class Board:
     """Доска заданий, имеющая свои столбцы"""
-    def __init__(self, notebook, board_id, add=False):
+    def __init__(self, notebook, board_id, name, add=False):
         self.notebook = notebook
         self.board_id = board_id
         if add:
             self.frame = tkinter.ttk.Frame(self.notebook, name="+")
             self.notebook.add(self.frame, text="+")
         else:
+            self.name1 = name
+            self.id = 0
+            self.titles = []
+            self.texts = []
             self.frame = tkinter.ttk.Frame(self.notebook)
             # Добавление столбцов
             # TODO восстановление столбцов из БД
-            self.columns = list()
-            self.columns.append(Column(self.frame, 1))
-            self.columns.append(Column(self.frame, 1))
+            DataBace.createNewDesk(self.name1)
+            if DataBace.check(self.name1, "new") == False:
+                DataBace.addText(self.name1, "new", "-")
+            self.columns = []
+            DataBace.returnAll(self.name1)
+            for i in DataBace.returnAll(name):
+                data = str(i).split(",")
+                title = data[0][2:-1]
+                self.titles.append(title)
+                text = data[1][2:-2]
+                self.texts.append(text)
+                self.columns.append(Column(self.frame, self.name1, title, text, self.id))
+#            self.columns.append(Column(self.frame, 1))
             # TODO восстановление доски из БД
-            self.text = "Доска"
-            self.notebook.insert(self.notebook.index("end") - 1, self.frame, text=self.text)  # До должен быть frame "+"
-
+            self.notebook.insert(self.notebook.index("end") - 1, self.frame, text=self.name1)  # До должен быть frame "+"
             # Создание сетки
             self.number_of_rows = 3
             self.number_of_columns = len(self.columns)
@@ -129,6 +148,8 @@ class Board:
             tkinter.ttk.Button(self.frame_control, text="Удалить доску", command=self.delete).grid(row=0, column=1)
             tkinter.ttk.Button(self.frame_control, text="Добавить столбец", command=self.add_column).grid(row=0,
                                                                                                           column=2)
+            tkinter.ttk.Button(self.frame_control, text="Удалить столбец", command=self.delete_column).grid(row=0,
+                                                                                                          column=3)
             self.frame_control.grid(row=0, column=0, columnspan=self.number_of_columns, sticky="nw")
 
     def alignment(self):
@@ -139,15 +160,45 @@ class Board:
             self.frame.rowconfigure(index=r, weight=1)
 
     def add_column(self):
-        print("Добавление столбца")
+        self.id += 1
+        print("Input title and text:(don't copy text)")
+        title = input()
+        while(DataBace.check(self.name1, title)):
+            print("repeat")
+            title = input()
+        self.titles.append(title)
+        text = input()
+        self.texts.append(text)
+        DataBace.addText(self.name1, title, text)
+        self.columns.append(Column(self.frame, self.name1,title, text, self.id))
+        self.number_of_columns = len(self.columns)
         self.alignment()
+        for i in range(len(self.columns)):
+            self.columns[i].frame.grid(row=1, column=i)
+        self.frame_control.grid(row=0, column=0, columnspan=self.number_of_columns, sticky="nw")
+
+    def delete_column(self):
+        self.columns[-1].listbox.destroy()
+        self.columns[-1].btn1.destroy()
+        self.columns.pop()
+        print(self.titles)
+        DataBace.deleteAboutLast(self.name1, "title", self.titles[-1])
+        self.titles.pop()
 
     def rename(self):
-        print("Переименование доски")
-
+        print("input new name:\n")
+        name = input()
+        self.notebook.forget("current")
+        Board(self.notebook, 1, name)
+        self.notebook.select(self.notebook.index("end") - 2)
     def delete(self):
         # TODO удаление из БД
         self.notebook.forget("current")
+        DataBace.deleteDesk(self.name1)
+        if self.notebook.index("end") == 1:
+            self.notebook.select(self.notebook.index("end") - 1)
+        else:
+            self.notebook.select(self.notebook.index("end") - 2)
 
 
 class MainScreen:
@@ -158,27 +209,44 @@ class MainScreen:
         # Создание вкладок
         self.notebook = tkinter.ttk.Notebook(padding=5)
         # TODO проход по БД для восстановления досок
-        Board(self.notebook, -1, add=tkinter.TRUE)
-        Board(self.notebook, 1)
-        Board(self.notebook, 1)
+        Board(self.notebook, -1, "+", add=tkinter.TRUE)
+        for i in DataBace.returnNameTables():
+            Board(self.notebook, 1 , str(i).split("'")[1])
         self.notebook.select(0)
         self.notebook.bind("<<NotebookTabChanged>>", self.tab_changed)
         self.notebook.place(relx=0.5, rely=0.5, anchor="center", relheight=1.0, relwidth=1.0)
 
     def new_board(self):
         # TODO экран создания доски (или можно его встроить во вкладку "+")
-        print("Создание новой доски")
+#        NewTab()
+        name = "New"
+        count = 0
+        Names = []
+        try:
+            for i in DataBace.returnNameTables():
+                Names.append(str(i).split("'")[1])
+            while name in Names:
+                name = name.split("_")[0]
+                count+=1
+                name += f"_{count}"
+            DataBace.createNewDesk(name)
+        except:
+            DataBace.createNewDesk(name)
+        Board(self.notebook, 1, name)
+        self.notebook.select(self.notebook.index("end") - 2)
 
     def tab_changed(self, event) -> None:
         if event.widget.select().endswith("+"):
             self.new_board()
-
     def show(self):
         """Отображает экран в окне"""
         self.main_frm.place(relx=0.5, rely=0.5, anchor="center", relheight=1.0, relwidth=1.0)
 
 
 favicon_path = "favicon.png"
+
+DataBace = db.Desk("desk2")
+DataBace.createNewDesk("Desk1")
 
 if __name__ == "__main__":
     # Главное окно
