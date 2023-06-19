@@ -58,8 +58,16 @@ class Desk:
         self.c.execute("SELECT name FROM sqlite_master WHERE type='table';")
         return self.c.fetchall()
 
-# DataBace = Desk("desk")
-# DataBace.createNewDesk("Absd")
+    def renameTable(self, name_table, new_name):
+        self.c.execute(f"""ALTER TABLE '{name_table}' RENAME TO '{new_name}'""")
+        self.db.commit()
+
+DataBace = Desk("desk")
+DataBace.createNewDesk("Absd")
+print(DataBace.returnNameTables())
+DataBace.renameTable("Absd", "gg")
+print(DataBace.returnNameTables())
+
 # DataBace.addText("Absd", "title1", "text1")
 # DataBace.addText("Absd", "title2", "text2")
 # print(DataBace.returnAll("Absd"))
