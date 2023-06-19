@@ -119,9 +119,6 @@ class About_Us(tkinter.Toplevel):
         webbrowser.open(url)
 
 
-
-
-
 class MainMenu:
     """Принимает меню и дополняет его элементами, создавая главное меню программы"""
 
@@ -153,7 +150,7 @@ class Column:
         # Список
         self.listbox = tkinter.Listbox(self.frame, selectmode=tkinter.SINGLE)
         #        self.listbox.bind("<<ListboxSelect>>", self.select)
-        self.btn1 = tkinter.ttk.Button(self.frame, text=title, command=self.add)
+        self.btn1 = tkinter.ttk.Button(self.frame, text=title, command=self.rename)
         self.btn1.grid(row=0)
         for elem in [text]:  # TODO получение данных с БД
             self.listbox.insert(self.listbox.size(), elem)
@@ -168,7 +165,7 @@ class Column:
     #        if len(index) != 0:
     #            print(f"Выбран {index[0]}")
 
-    def add(self):
+    def rename(self):
         print("Input title and text:\n")
         title = input()
         text = input()
@@ -254,13 +251,16 @@ class Board:
 
     def add_column(self):
         self.id += 1
-        print("Input title and text:(don't copy text)")
-        title = input()
+        title_input_window = TitleInputWindow(self.frame)
+        self.frame.wait_window(title_input_window)
+        title = title_input_window.new_title
+        text = title_input_window.new_text
         while DataBace.check(self.name1, title):
-            print("repeat")
-            title = input()
+            title_input_window = TitleInputWindow(self.frame)
+            self.frame.wait_window(title_input_window)
+            title = title_input_window.new_title
+            text = title_input_window.new_text
         self.titles.append(title)
-        text = input()
         self.texts.append(text)
         DataBace.addText(self.name1, title, text)
         self.columns.append(Column(self.frame, self.name1, title, text, self.id))
@@ -286,6 +286,37 @@ class Board:
             self.notebook.select(self.notebook.index("end") - 1)
         else:
             self.notebook.select(self.notebook.index("end") - 2)
+
+
+class TitleInputWindow(tkinter.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.new_title = ""
+        self.new_text = ""
+
+        self.input_label = tkinter.Label(self, text="Введите название и текст:")
+        self.input_label.pack()
+
+        self.input_title = tkinter.Entry(self)
+        self.input_title.pack()
+
+        self.input_text = tkinter.Entry(self)
+        self.input_text.pack()
+
+        self.confirm_button = tkinter.Button(self, text="Подтвердить", command=self.confirm)
+        self.confirm_button.pack()
+
+    def confirm(self):
+        # Получаем введенное имя из поля ввода
+        self.new_title = self.input_title.get()
+        self.new_text = self.input_text.get()
+        # Вызываем метод rename_board у родительского экземпляра Board
+        # if isinstance(self.parent, Board):
+        #     self.parent.rename_board(self.name)
+
+        # Закрываем окно ввода
+        self.destroy()
 
 
 class TextInputWindow(tkinter.Toplevel):
